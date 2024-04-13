@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Chat App</title>
+
+    <style>
+        /* Inline CSS styles */
+        #messageContainer {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 400px;
+            overflow-y: auto;
+            height: 200px;
+        }
+        #typed-msg {
+            width: 250px;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type="button"] {
+            padding: 5px 10px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+
+</head>
+
+<div>
+    <h1>Chat with friends...</h1>
+    <span> <input type="text" name="" id="typed-msg"> </span> 
+    <span><input onclick="sendMsg()" type="button" value="Send"></span>
+</div>
+
+<div id="messageContainer"></div>
+
+<body>
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+
+        let list = [];
+
+        ws.onmessage = function (event) {
+            console.log('Chat:', event.data);
+            list.push(event.data);
+            updateMessageContainer();
+        };
+
+        ws.onopen = function () {
+            ws.send('Hello, server!');
+        };
+
+        function updateMessageContainer() {
+            var messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = ''; // Clear previous messages
+
+            // Iterate over the list and add each message to the container
+            list.forEach(function(message) {
+                var messageElement = document.createElement('div');
+                messageElement.textContent = message;
+                messageContainer.appendChild(messageElement);
+            });
+        }
+
+        function sendMsg(){
+            const msg_box = document.getElementById('typed-msg');
+            ws.send(msg_box.value);
+        }
+
+        function addEvent(){
+            console.log('event added');
+            document.getElementById('typed-msg').addEventListener('keydown', function(event) {
+            // Check if Enter key is pressed (keyCode 13)
+            if (event.keyCode === 13) {
+                const msg_box = document.getElementById('typed-msg');
+                ws.send(msg_box.value);
+            }
+        });
+        }
+        addEvent();
+
+        // To send messages, use the browser console to call:
+        // ws.send('Your message');
+    </script>
+</body>
+</html>
